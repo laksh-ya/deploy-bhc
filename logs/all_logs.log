@@ -1,0 +1,67 @@
+2025-07-17 02:47:47,203 - INFO - None has ordered the sale order SALE-001i added by system
+2025-07-17 02:52:01,897 - INFO - Global Solutions Inc. has ordered the sale order SALE-01i added by system
+2025-07-20 02:17:45,324 - ERROR - [delete_expense] Failed to delete expense S8t2ROHWfZ05SkyzNT9W by system | Error: object generator can't be used in 'await' expression
+2025-07-20 11:26:35,336 - ERROR - [delete_expense] Failed to delete expense S8t2ROHWfZ05SkyzNT9W by system | Error: object generator can't be used in 'await' expression
+2025-07-20 11:31:18,353 - ERROR - [delete_expense] Failed to delete expense S8t2ROHWfZ05SkyzNT9W by system | Error: object DocumentSnapshot can't be used in 'await' expression
+2025-07-20 11:32:57,946 - ERROR - [delete_expense] Failed to delete expense S8t2ROHWfZ05SkyzNT9W by system | Error: object DocumentSnapshot can't be used in 'await' expression
+2025-07-20 11:33:00,053 - ERROR - [delete_expense] Failed to delete expense S8t2ROHWfZ05SkyzNT9W by system | Error: object DocumentSnapshot can't be used in 'await' expression
+2025-07-20 11:36:00,186 - ERROR - [delete_expense] Failed to delete expense S8t2ROHWfZ05SkyzNT9W by system | Error: object DocumentSnapshot can't be used in 'await' expression
+2025-07-20 11:36:50,177 - ERROR - [delete_expense] Failed to delete expense S8t2ROHWfZ05SkyzNT9W by system | Error: object DocumentSnapshot can't be used in 'await' expression
+2025-07-20 11:39:25,095 - ERROR - [delete_expense] Failed to delete expense S8t2ROHWfZ05SkyzNT9W by system | Error: object DatetimeWithNanoseconds can't be used in 'await' expression
+2025-07-20 11:41:06,194 - ERROR - [delete_expense] Failed to delete expense WrRt3CsvDtUrYAYdLTRr by system | Error: object DatetimeWithNanoseconds can't be used in 'await' expression
+2025-07-20 19:02:08,031 - INFO - [create_employee] Employee E0004 created by system | Fields: ['name', 'phone', 'paid', 'collected']
+2025-07-20 19:02:33,098 - INFO - [delete_employee] Employee E0004 deleted by system
+2025-07-20 19:03:31,595 - INFO - [update_employee] Employee E0003 updated by system | Updated fields: ['name', 'phone', 'paid', 'collected']
+2025-07-20 19:12:14,554 - INFO - [delete_inventory_item] Inventory item I0017 deleted by system | Stock removed: 0.0, Low stock: True, Expiring soon: False
+2025-07-20 20:20:38,055 - INFO - [update_inventory_item] Inventory item I0015 updated by system | Updated fields: ['name', 'category', 'low_stock_threshold', 'stock_quantity', 'batches']
+2025-07-22 12:45:43,926 - ERROR - [delete_order] Error deleting Order pllssshoja: type object 'InventoryService' has no attribute 'revert_inventory_on_delete'
+Traceback (most recent call last):
+  File "C:\Users\thebe\ML\Codes\Balaji Health Care Assisstant\balaji-health-care-assistant\Test\backend\test.py", line 4460, in delete_order
+    await InventoryService.revert_inventory_on_delete(
+AttributeError: type object 'InventoryService' has no attribute 'revert_inventory_on_delete'
+
+2025-07-22 12:51:42,285 - ERROR - [delete_order] Error deleting Order pllssshoja: type object 'InventoryService' has no attribute 'revert_inventory_on_delete'
+Traceback (most recent call last):
+  File "C:\Users\thebe\ML\Codes\Balaji Health Care Assisstant\balaji-health-care-assistant\Test\backend\test.py", line 4203, in delete_order
+    "updated_at": datetime.utcnow()
+AttributeError: type object 'InventoryService' has no attribute 'revert_inventory_on_delete'
+
+2025-07-22 12:53:13,076 - ERROR - [delete_order] Error deleting Order pllssshoja: update_due() got an unexpected keyword argument 'user'
+Traceback (most recent call last):
+  File "C:\Users\thebe\ML\Codes\Balaji Health Care Assisstant\balaji-health-care-assistant\Test\backend\test.py", line 4479, in delete_order
+    SupplierService.update_due(
+TypeError: update_due() got an unexpected keyword argument 'user'
+
+2025-07-22 12:55:32,392 - ERROR - [delete_order] Error deleting Order pllssshoja: update_due() got an unexpected keyword argument 'order_id'
+Traceback (most recent call last):
+  File "C:\Users\thebe\ML\Codes\Balaji Health Care Assisstant\balaji-health-care-assistant\Test\backend\test.py", line 4481, in delete_order
+    SupplierService.update_due(
+TypeError: update_due() got an unexpected keyword argument 'order_id'
+
+2025-07-22 12:56:29,139 - INFO - [delete_order] Order pllssshoja deleted by system | Type: purchase | Amount: 400.0
+2025-07-22 12:59:23,387 - INFO - [delete_order] Order FMC-345098 deleted by system | Type: purchase | Amount: 300000.0
+2025-07-22 13:03:13,248 - INFO - [delete_order] Order BHF-456-345 deleted by system | Type: sale | Amount: 1000000.0
+2025-07-22 14:32:11,915 - INFO - [delete_order] Order abc deleted by system | Type: sale | Amount: 398.0
+2025-07-22 14:40:22,675 - ERROR - [delete_order] Error deleting Order 123789: type object 'EmployeeService' has no attribute 'revert_employee_collection'
+Traceback (most recent call last):
+  File "C:\Users\thebe\ML\Codes\Balaji Health Care Assisstant\balaji-health-care-assistant\Test\backend\test.py", line 4487, in delete_order
+    await EmployeeService.revert_employee_collection(
+AttributeError: type object 'EmployeeService' has no attribute 'revert_employee_collection'
+
+2025-07-22 14:41:32,826 - INFO - [delete_order] Order 123789 deleted by system | Type: delivery_challan | Amount: 1000.0
+2025-07-23 01:02:17,111 - ERROR - [delete_expense] Failed to delete expense Bj2Oxh3xLYseGqQzLyXI by system | Error: get_employee_id_from_paid_by() missing 1 required positional argument: 'paid_by_value'
+Traceback (most recent call last):
+  File "C:\Users\thebe\ML\Codes\Balaji Health Care Assisstant\balaji-health-care-assistant\Test\backend\test.py", line 2482, in delete_expense
+    employee_id = await get_employee_id_from_paid_by(paid_by_value)
+TypeError: get_employee_id_from_paid_by() missing 1 required positional argument: 'paid_by_value'
+
+2025-07-23 01:07:50,377 - ERROR - [delete_expense] Failed to delete expense EbBWbOvw9YSSEWB9qEm0 by system | Error: get_employee_id_from_paid_by() missing 1 required positional argument: 'paid_by_value'
+Traceback (most recent call last):
+  File "C:\Users\thebe\ML\Codes\Balaji Health Care Assisstant\balaji-health-care-assistant\Test\backend\test.py", line 2482, in delete_expense
+    employee_id = await get_employee_id_from_paid_by(paid_by_value)
+TypeError: get_employee_id_from_paid_by() missing 1 required positional argument: 'paid_by_value'
+
+2025-07-23 15:09:45,048 - INFO - [expense_update] Expense 'Lrp1SarunPQjGvn1H5fm' updated by 'system'
+2025-07-24 19:06:20,835 - INFO - [update_payment] Payment for order 'BHC-567-456789' updated by 'system'. New status: paid, Amount Paid: 5040.0
+2025-07-24 19:08:33,541 - INFO - [employee_create] New employee 'E0008' created by 'system' | Fields added: name, phone, paid, collected
+2025-07-24 19:13:28,274 - INFO - [update_payment] Payment for order '234' updated by 'system'. New status: paid, Amount Paid: 747.0

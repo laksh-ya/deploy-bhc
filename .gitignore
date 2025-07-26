@@ -1,0 +1,10 @@
+firebase_config/firebase_key.json
+.env
+venv
+Test/firebase_key.json
+<<<<<<< Updated upstream
+/venv
+
+=======
+Test/backend/firebase_key.json
+>>>>>>> Stashed changes
