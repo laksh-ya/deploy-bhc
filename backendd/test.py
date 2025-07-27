@@ -36,7 +36,7 @@ from fastapi import FastAPI, Request, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from firebase_admin import auth as firebase_auth
 from langchain.agents import AgentExecutor
-from backendd.log_config import loggerr
+from .log_config import loggerr
 import traceback
 from firebase_config.agent import run_agent_streaming
   # your initialized LangChain agent
