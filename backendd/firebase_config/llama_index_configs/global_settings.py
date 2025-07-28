@@ -27,7 +27,8 @@ qdrant_client = QdrantClient(url=QDRANT_URL, api_key=QDRANT_API_KEY)
 logger.info("✅ Qdrant client initialized")
 
 # Load transformer model
-ST_MODEL = "all-MiniLM-L6-v2"
+# ST_MODEL = "all-MiniLM-L6-v2"
+ST_MODEL = "paraphrase-MiniLM-L3-v2"
 logger.info(f"🧠 Loading SentenceTransformer model: {ST_MODEL}")
 st_model = SentenceTransformer(ST_MODEL)
 embed_model = HuggingFaceEmbedding(model_name=ST_MODEL)
