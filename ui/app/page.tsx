@@ -16,21 +16,26 @@ import { useMobile } from "@/hooks/use-mobile"
 import { EmployeesTab } from "@/components/employees-tab"
 import { Logs } from "@/components/logs"
 
+// unified user type (based on what components expect)
+type User = {
+  name: string
+  email: string
+  role: string
+}
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("dashboard")
-  const [user, setUser] = useState<{ username: string } | null>(null)
+  const [user, setUser] = useState<User | null>(null)
   const isMobile = useMobile()
 
   useEffect(() => {
-    // Check if user is logged in (from localStorage)
     const savedUser = localStorage.getItem("user")
     if (savedUser) {
       setUser(JSON.parse(savedUser))
     }
   }, [])
 
-  const handleLogin = (userData: { username: string }) => {
+  const handleLogin = (userData: User) => {
     setUser(userData)
     localStorage.setItem("user", JSON.stringify(userData))
   }
@@ -40,7 +45,6 @@ export default function Home() {
     localStorage.removeItem("user")
   }
 
-  // Function to handle navigation from dashboard
   const handleNavigateToTab = (tabName: string) => {
     setActiveTab(tabName)
   }
@@ -68,7 +72,7 @@ export default function Home() {
       case "chatbot":
         return <ChatbotTab />
       case "employees":
-        return <EmployeesTab user={user} />
+        return <EmployeesTab  />
       case "logs":
         return <Logs />
       default:
@@ -79,9 +83,16 @@ export default function Home() {
   return (
     <NotificationsProvider>
       <div className="flex h-screen bg-background">
-        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} user={user} onLogout={handleLogout} />
+        <Sidebar
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          user={user}
+          onLogout={handleLogout}
+        />
         <main className={`flex-1 overflow-auto ${isMobile ? "w-full" : "ml-64"}`}>
-          <div className={`p-3 sm:p-4 md:p-6 pt-16 md:pt-6`}>{renderActiveTab()}</div>
+          <div className="p-3 sm:p-4 md:p-6 pt-16 md:pt-6">
+            {renderActiveTab()}
+          </div>
         </main>
       </div>
     </NotificationsProvider>
