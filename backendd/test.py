@@ -95,7 +95,7 @@ auth_logger = logging.getLogger("auth")
 # ================================
 
 class Settings:
-    FIREBASE_CREDENTIALS_PATH = os.getenv("FIREBASE_CREDENTIALS_PATH", "./etc/secrets/firebase-credentials.json")
+    FIREBASE_CREDENTIALS_PATH = os.getenv("FIREBASE_CREDENTIALS_PATH", "/etc/secrets/firebase-credentials.json")
     CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
     SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-change-this")
     ALGORITHM = os.getenv("ALGORITHM", "HS256")

@@ -4,7 +4,7 @@ from firebase_admin import credentials, firestore
 # Initialize Firebase with service account credentials
 # Check if Firebase app is already initialized to avoid duplicate initialization
 if not firebase_admin._apps:
-    cred = credentials.Certificate("./etc/secrets/firebase_key.json")
+    cred = credentials.Certificate("/etc/secrets/firebase_key.json")
     firebase_admin.initialize_app(cred)
 
 # Initialize Firestore client
