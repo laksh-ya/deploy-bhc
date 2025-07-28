@@ -38,7 +38,11 @@ import { useMobile } from "@/hooks/use-mobile"
 interface SidebarProps {
   activeTab: string
   setActiveTab: (tab: string) => void
-  user: { username: string }
+  user: {
+    name: string
+    email: string
+    role: string
+  }
   onLogout: () => void
 }
 
@@ -246,11 +250,11 @@ export function Sidebar({ activeTab, setActiveTab, user, onLogout }: SidebarProp
         <div className="flex items-center space-x-3 mb-3">
           <Avatar className="w-10 h-10 shadow-lg">
             <AvatarFallback className="bg-gradient-to-br from-blue-500/20 to-cyan-600/20 text-blue-600 dark:text-blue-400 font-semibold">
-              {getInitials(user.username)}
+              {getInitials(user.name)}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate text-readable">{user.username}</p>
+            <p className="text-sm font-medium truncate text-readable">{user.name}</p>
             <p className="text-xs text-readable-muted">Balaji Health Care</p>
           </div>
         </div>

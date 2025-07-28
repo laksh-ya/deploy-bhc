@@ -26,12 +26,6 @@ import {
 } from "lucide-react"
 import { useMobile } from "@/hooks/use-mobile"
 
-interface OrdersTabProps {
-  user: {
-    username: string
-    id: string
-  }
-}
 
 interface ScannedOrderData {
   invoice_number: string
@@ -285,6 +279,14 @@ const ItemNameField = ({
     </div>
   );
 };
+interface OrdersTabProps {
+  user: {
+    name: string
+    email: string
+    role: string
+  }
+}
+
 export function OrdersTab({ user }: OrdersTabProps) {
   const [orderType, setOrderType] = useState("sell")
   const [scannedData, setScannedData] = useState<ScannedOrderData | null>(null)
@@ -380,7 +382,7 @@ export function OrdersTab({ user }: OrdersTabProps) {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            "X-User-ID": user?.id || "anonymous", // Include X-User-ID for logging
+            "X-User-ID":  "anonymous", // Include X-User-ID for logging
           },
         })
 
@@ -422,7 +424,7 @@ export function OrdersTab({ user }: OrdersTabProps) {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            "X-User-ID": user?.id || "anonymous", // Include X-User-ID for logging
+            "X-User-ID":  "anonymous", // Include X-User-ID for logging
           },
         })
 
@@ -464,7 +466,7 @@ export function OrdersTab({ user }: OrdersTabProps) {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            "X-User-ID": user?.id || "anonymous", // Include X-User-ID for logging
+            "X-User-ID":  "anonymous", // Include X-User-ID for logging
           },
         })
 
@@ -1242,7 +1244,7 @@ const handleItemSearch = (itemId: number, value: string) => {
       remarks: editableScannedData.remarks,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      updated_by: user.username,
+      updated_by: user.name || "Anonymous",
       document_type: editableScannedData.order_type === "delivery_challan" ? "delivery-challan" : editableScannedData.order_type === "sale" ? "sales-invoice" : "purchase",
       amount_paid: editableScannedData.amount_paid,
       payment_method: editableScannedData.payment_method,
