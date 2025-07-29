@@ -244,13 +244,19 @@ export function FinanceTab() {
 
   const handleAddExpense = async (e: React.FormEvent) => {
     e.preventDefault()
-    const { amount, category, paidBy, remarks } = expenseForm
+    const { amount, category, paidBy, remarks, date } = expenseForm // Destructure date as well
     const numericAmount = Number(amount)
 
     if (!numericAmount || !category) {
       toast.error("Please fill in required fields (amount & category)")
       return
     }
+    // If paidBy is a required field on the backend and not just a suggestion
+    // you might want to add a check here as well:
+    // if (!paidBy) {
+    //   toast.error("Please select who paid for the expense.");
+    //   return;
+    // }
 
     try {
       const response = await fetch(`${API_BASE}/api/v1/expenses`, {
@@ -262,11 +268,22 @@ export function FinanceTab() {
         body: JSON.stringify({
           amount: numericAmount,
           category,
-          ...(paidBy ? { paid_by: paidBy } : {}),
-          remarks,
+          paid_by: paidBy, // <--- FIX: Always send paid_by, even if empty string
+          remarks,          // remarks is also required, send it always
+          // If your backend expects a 'date' or 'created_at' field in the payload,
+          // include it here. Assuming `date` from your form maps to `created_at` or similar.
+          ...(date && { created_at: new Date(date).toISOString() }), // Example: sending date as created_at
         }),
       })
-      if (!response.ok) throw new Error(`Add expense failed: ${response.status}`)
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.detail 
+            ? (Array.isArray(errorData.detail) 
+                ? errorData.detail.map((err: any) => `${err.loc.join('.')} - ${err.msg}`).join('\n')
+                : errorData.detail)
+            : `Add expense failed: ${response.status}`;
+        throw new Error(errorMessage);
+      }
       const newExpense = await response.json()
       setExpenses([mapBackendExpenseToUI(newExpense), ...expenses])
       setTotalExpenseCount(totalExpenseCount + 1)
@@ -278,9 +295,11 @@ export function FinanceTab() {
       toast.success("Expense added successfully")
       // reset form state
       setExpenseForm({ amount: "", category: "", paidBy: "", date: "", remarks: "" })
+      setRefreshTrigger(t => t + 1); // Trigger a refresh for summary and expense list
     } catch (error) {
       console.error("Failed to add expense", error)
-      toast.error("Failed to add expense")
+      const err = error as Error;
+      toast.error(err.message || "Failed to add expense")
     }
   }
 
@@ -314,7 +333,15 @@ export function FinanceTab() {
           remarks,
         }),
       })
-      if (!response.ok) throw new Error(`Update expense failed: ${response.status}`)
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.detail 
+            ? (Array.isArray(errorData.detail) 
+                ? errorData.detail.map((err: any) => `${err.loc.join('.')} - ${err.msg}`).join('\n')
+                : errorData.detail)
+            : `Update expense failed: ${response.status}`;
+        throw new Error(errorMessage);
+      }
       const updatedExpense = await response.json()
       setExpenses(expenses.map((exp) => (exp.id === updatedExpense.id ? mapBackendExpenseToUI(updatedExpense) : exp)))
       setSummary((prev) =>
@@ -328,9 +355,11 @@ export function FinanceTab() {
       )
       setShowEditExpenseDialog(false)
       toast.success("Expense updated successfully")
+      setRefreshTrigger(t => t + 1); // Trigger a refresh
     } catch (error) {
       console.error("Failed to update expense", error)
-      toast.error("Failed to update expense")
+      const err = error as Error;
+      toast.error(err.message || "Failed to update expense")
     }
   }
 
@@ -393,7 +422,15 @@ export function FinanceTab() {
           payment_status: remarks,
         }),
       })
-      if (!response.ok) throw new Error(`Update payment failed: ${response.status}`)
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.detail 
+            ? (Array.isArray(errorData.detail) 
+                ? errorData.detail.map((err: any) => `${err.loc.join('.')} - ${err.msg}`).join('\n')
+                : errorData.detail)
+            : `Update payment failed: ${response.status}`;
+        throw new Error(errorMessage);
+      }
       const updatedPayment = await response.json()
       setPayments(payments.map((pay) => (pay.id === updatedPayment.id ? mapBackendPaymentToUI(updatedPayment) : pay)))
       setSummary((prev) =>
@@ -407,9 +444,11 @@ export function FinanceTab() {
       )
       setShowEditPaymentDialog(false)
       toast.success("Payment updated successfully")
+      setRefreshTrigger(t => t + 1); // Trigger a refresh
     } catch (error) {
       console.error("Failed to update payment", error)
-      toast.error("Failed to update payment")
+      const err = error as Error;
+      toast.error(err.message || "Failed to update payment")
     }
   }
 
