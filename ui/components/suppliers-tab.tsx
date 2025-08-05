@@ -12,7 +12,7 @@ import { Truck, Plus, History, Phone, ChevronRight, ChevronLeft, Edit, Package, 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 // --- TYPES AND CONSTANTS ---
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000"
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://deploy-bhc.onrender.com"
 
 type Supplier = {
   id: string

@@ -42,7 +42,7 @@ interface EmployeesTabProps {
   user?: { username: string }
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000"
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "https://deploy-bhc.onrender.com"
 
 // Helper function to map backend data to frontend shape
 const mapBackendToUI = (emp: any): Employee => ({
