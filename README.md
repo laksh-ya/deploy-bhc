@@ -1,6 +1,10 @@
 # BHC (Balaji Health Care) Business Suite
 
-![BHC Logo](https://bhcmp.store/logo.svg)
+<p align="center">
+  <img src="assets/logo.png" alt="BHC Logo" width="100">
+</p>
+
+
 
 **A full-stack, AI-enhanced web application built to modernize and centralize the complete operational workflow for Balaji Health Care.**
 
