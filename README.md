@@ -52,9 +52,9 @@ The suite provides end-to-end management of inventory (including batch and expir
 
 | Dashboard | AI Chatbot |
 | :---: | :---: |
-| ![Dashboard Screenshot](https://i.imgur.com/YOUR_DASHBOARD_IMAGE.png) | ![AI Chatbot Screenshot](https://i.imgur.com/YOUR_CHATBOT_IMAGE.png) |
-| **Inventory Management** | **Order Creation** |
-| ![Inventory Screenshot](https://i.imgur.com/YOUR_INVENTORY_IMAGE.png) | ![Orders Screenshot](https://i.imgur.com/YOUR_ORDERS_IMAGE.png) |
+| ![Dashboard Screenshot](assets/dashboard.png) | ![AI Chatbot Screenshot](assets/chatbot.jpg) |
+| **Finance Management** | **Order View** |
+| ![Finance Screenshot](assets/finance.jpg) | ![Orders Screenshot](assets/order_view.jpg) |
 
 ---
 
