@@ -148,17 +148,22 @@
 
   /* Heading styles */
   .heading-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #06b6d4 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .dark .heading-primary {
-    background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+    background: linear-gradient(135deg, #60a5fa 0%, #22d3ee 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+
+  .heading-secondary {
+    color: hsl(var(--foreground));
+    font-weight: 600;
   }
 
   /* Status colors */
@@ -203,23 +208,23 @@
 
   /* Button variants */
   .btn-blue {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #06b6d4 100%);
     color: white;
     border: none;
   }
 
   .btn-blue:hover {
-    background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+    background: linear-gradient(135deg, #1d4ed8 0%, #0891b2 100%);
   }
 
   .btn-blue-outline {
-    border: 2px solid #667eea;
-    color: #667eea;
+    border: 2px solid #2563eb;
+    color: #2563eb;
     background: transparent;
   }
 
   .btn-blue-outline:hover {
-    background: #667eea;
+    background: #2563eb;
     color: white;
   }
 
@@ -350,7 +355,7 @@
 
   /* Gradient text utilities */
   .gradient-text-blue {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2563eb 0%, #06b6d4 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;

@@ -15,6 +15,14 @@ import { NotificationsProvider } from "@/components/notifications-provider"
 import { useMobile } from "@/hooks/use-mobile"
 import { EmployeesTab } from "@/components/employees-tab"
 import { Logs } from "@/components/logs"
+import { DEMO_MODE } from "@/lib/demo-auth"
+import { installDemoApi } from "@/lib/demo-api"
+
+// In demo mode, install the fetch interceptor at module load so it is active
+// before any component's data-fetching effect runs.
+if (DEMO_MODE) {
+  installDemoApi()
+}
 
 // unified user type (based on what components expect)
 type User = {

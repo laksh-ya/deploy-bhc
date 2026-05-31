@@ -6,36 +6,44 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Building2, Lock, User } from "lucide-react"
+import { Building2, Lock, User, Sparkles } from "lucide-react"
+import { API_BASE_URL } from "@/lib/config"
+import { DEMO_MODE, DEMO_CREDENTIALS, PRIMARY_DEMO_USER, demoLogin } from "@/lib/demo-auth"
 
 interface LoginPageProps {
   onLogin: (userData: { email: string; role: string; name: string }) => void
 }
 
 export function LoginPage({ onLogin }: LoginPageProps) {
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  })
+  const [formData, setFormData] = useState({ email: "", password: "" })
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError(null)
 
     if (!formData.email || !formData.password) {
-      alert("Please fill in all fields")
+      setError("Please fill in all fields")
       return
     }
 
+    setLoading(true)
+
+    // 1) Demo accounts always work (no backend needed).
+    const demoUser = demoLogin(formData.email, formData.password)
+    if (demoUser) {
+      onLogin(demoUser)
+      setLoading(false)
+      return
+    }
+
+    // 2) Otherwise authenticate against the real backend.
     try {
-      setLoading(true)
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/login`, {
+      const res = await fetch(`${API_BASE_URL}/api/v1/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
+        body: JSON.stringify({ email: formData.email, password: formData.password }),
       })
 
       if (!res.ok) {
@@ -45,10 +53,19 @@ export function LoginPage({ onLogin }: LoginPageProps) {
       const data = await res.json()
       onLogin(data)
     } catch (err: any) {
-      alert(err.message || "Login failed")
+      setError(
+        DEMO_MODE
+          ? "Login failed. Try the demo account below."
+          : err.message || "Login failed",
+      )
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleDemoLogin = () => {
+    setError(null)
+    onLogin(PRIMARY_DEMO_USER)
   }
 
   const handleInputChange = (field: string, value: string) => {
@@ -56,17 +73,19 @@ export function LoginPage({ onLogin }: LoginPageProps) {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative">
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 via-cyan-50/30 to-sky-50/50 dark:from-blue-950/20 dark:via-cyan-950/10 dark:to-sky-950/20"></div>
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Ambient background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-cyan-50/40 to-sky-100 dark:from-slate-950 dark:via-blue-950/40 dark:to-slate-900" />
+      <div className="absolute inset-0 bg-grid-pattern opacity-[0.4] dark:opacity-[0.15]" />
 
-      <Card className="w-full max-w-md glass-card relative z-10 shadow-2xl">
+      <Card className="w-full max-w-md glass-card relative z-10 shadow-2xl animate-fade-in">
         <CardHeader className="text-center pb-6">
           <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl flex items-center justify-center shadow-lg animate-pulse-blue">
+            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30">
               <Building2 className="w-8 h-8 text-white" />
             </div>
           </div>
-          <CardTitle className="text-xl sm:text-2xl font-bold text-readable bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+          <CardTitle className="text-xl sm:text-2xl font-bold gradient-text-blue">
             Business Suite
           </CardTitle>
           <p className="text-sm sm:text-base text-readable-muted font-medium">Balaji Health Care</p>
@@ -87,7 +106,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                 value={formData.email}
                 onChange={(e) => handleInputChange("email", e.target.value)}
                 required
-                className="glass-input text-readable placeholder:text-readable-subtle focus-blue transition-all duration-200"
+                className="glass-input text-readable placeholder:text-readable-subtle focus-ring transition-all duration-200"
               />
             </div>
 
@@ -103,39 +122,62 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                 value={formData.password}
                 onChange={(e) => handleInputChange("password", e.target.value)}
                 required
-                className="glass-input text-readable placeholder:text-readable-subtle focus-blue transition-all duration-200"
+                className="glass-input text-readable placeholder:text-readable-subtle focus-ring transition-all duration-200"
               />
             </div>
 
+            {error && (
+              <p className="text-sm text-red-500 text-center" role="alert">
+                {error}
+              </p>
+            )}
+
             <Button
               type="submit"
-              className="w-full mt-6 btn-blue text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+              className="w-full mt-2 btn-blue text-white shadow-lg shadow-blue-500/20 hover:shadow-xl transition-all duration-200"
               disabled={loading}
             >
               {loading ? "Signing In..." : "Sign In to Business Suite"}
             </Button>
           </form>
 
-          <div className="mt-6 p-3 sm:p-4 glass rounded-lg border border-blue-200/30 dark:border-blue-700/30">
-            <p className="text-xs sm:text-sm text-readable-muted text-center">
-              <strong className="text-blue-600 dark:text-blue-400">Access:</strong> Only authorized users may log in
-            </p>
-            <p className="text-xs text-readable-subtle text-center mt-1">
-              Powered by AI • Built for Healthcare Excellence
-            </p>
-          </div>
+          {DEMO_MODE && (
+            <>
+              <div className="relative my-5">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t border-blue-200/50 dark:border-blue-800/50" />
+                </div>
+                <div className="relative flex justify-center text-xs">
+                  <span className="bg-transparent px-2 text-readable-subtle">or</span>
+                </div>
+              </div>
 
-          <div className="mt-4 flex justify-center space-x-2">
-            <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-            <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse" style={{ animationDelay: "0.2s" }}></div>
-            <div className="w-2 h-2 bg-sky-400 rounded-full animate-pulse" style={{ animationDelay: "0.4s" }}></div>
-          </div>
+              <Button
+                type="button"
+                onClick={handleDemoLogin}
+                variant="outline"
+                className="w-full glass-button text-readable hover:text-blue-600 dark:hover:text-blue-400"
+              >
+                <Sparkles className="w-4 h-4 mr-2 text-blue-500" />
+                Try the Live Demo
+              </Button>
+
+              <div className="mt-4 p-3 sm:p-4 glass rounded-lg border border-blue-200/30 dark:border-blue-700/30">
+                <p className="text-xs text-readable-muted text-center mb-1">
+                  <strong className="text-blue-600 dark:text-blue-400">Demo credentials</strong>
+                </p>
+                <p className="text-xs text-readable-subtle text-center font-mono">
+                  {DEMO_CREDENTIALS[0].email} &nbsp;/&nbsp; {DEMO_CREDENTIALS[0].password}
+                </p>
+              </div>
+            </>
+          )}
+
+          <p className="text-xs text-readable-subtle text-center mt-4">
+            Powered by AI • Built for Healthcare Excellence
+          </p>
         </CardContent>
       </Card>
-
-      <div className="absolute top-10 left-10 w-20 h-20 bg-blue-400/10 rounded-full blur-xl"></div>
-      <div className="absolute bottom-10 right-10 w-32 h-32 bg-cyan-400/10 rounded-full blur-xl"></div>
-      <div className="absolute top-1/2 left-1/4 w-16 h-16 bg-sky-400/10 rounded-full blur-xl"></div>
     </div>
   )
 }

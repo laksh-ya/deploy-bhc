@@ -1,62 +1,46 @@
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.agents import initialize_agent
-from langchain.agents.agent_types import AgentType
-from langchain.memory import ConversationBufferMemory
-from firebase_config.tools import all_tools
+"""
+agent.py — LangChain conversational agent for the BHC AI assistant
+==================================================================
+
+This wires together three pieces:
+
+1. The LLM  — Google Gemini (``gemini-2.0-flash``) via ``langchain-google-genai``.
+2. The tools — every database tool defined in ``firebase_config/tools.py``
+   (CRUD helpers + semantic search over the Qdrant vector store).
+3. Memory   — a conversation buffer so the agent keeps context across turns.
+
+The agent uses the ZERO_SHOT_REACT_DESCRIPTION strategy: on each query it reasons
+about which tool to call, calls it, then we run a second "presentation" pass that
+turns the raw tool output into a clean, user-facing answer.
+
+Public surface:
+    run_agent(user_input, messages)            -> str   (single, non-streaming reply)
+    run_agent_streaming(user_input, messages)  -> str   (used by POST /api/v1/chat)
+"""
+
 import os
-from firebase_config.llama_index_configs import global_settings  # triggers embedding config
-
-# Load Gemini API key
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-
-# Initialize Gemini LLM
-llm = ChatGoogleGenerativeAI(
-    model="gemini-2.0-flash",
-    temperature=0,
-    google_api_key=GOOGLE_API_KEY
-)
-
-# Initialize conversational memory
-memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
-
-# Create LangChain agent with tools and memory
-agent = initialize_agent(
-    tools=all_tools,
-    llm=llm,
-    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-    memory=memory,
-    verbose=True
-)
-
-# Wrapper function to call the agent
-# def run_agent(user_input: str) -> str:
-#     return agent.run(user_input)
-def run_agent(user_input: str, messages: list) -> str:
-    inputs = {"input": user_input, "chat_history": messages}
-    return agent.invoke(inputs)["output"]
 
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.agents import initialize_agent
 from langchain.agents.agent_types import AgentType
 from langchain.memory import ConversationBufferMemory
-from firebase_config.tools import all_tools
-import os
-from firebase_config.llama_index_configs import global_settings  # triggers embedding config
 
-# Load Gemini API key
+from firebase_config.tools import all_tools
+from firebase_config.llama_index_configs import global_settings  # noqa: F401  (triggers embedding config)
+
+# ---------------------------------------------------------------------------
+# LLM, memory, and agent are initialised once at import time and reused.
+# ---------------------------------------------------------------------------
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
-# Initialize Gemini LLM
 llm = ChatGoogleGenerativeAI(
     model="gemini-2.0-flash",
     temperature=0,
-    google_api_key=GOOGLE_API_KEY
+    google_api_key=GOOGLE_API_KEY,
 )
 
-# Memory (shared if you want continuity)
 memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
-# Initialize LangChain Agent
 agent = initialize_agent(
     tools=all_tools,
     llm=llm,
@@ -65,19 +49,27 @@ agent = initialize_agent(
     verbose=True,
 )
 
-# 🚀 Streaming version
-# In your agent.py file
-# In your agent.py file
+
+def run_agent(user_input: str, messages: list) -> str:
+    """Run the agent and return its raw final answer (non-streaming)."""
+    inputs = {"input": user_input, "chat_history": messages}
+    return agent.invoke(inputs)["output"]
+
 
 def run_agent_streaming(user_input: str, messages: list):
+    """Run the agent, then reformat its output into a polished, user-facing reply.
+
+    The agent first decides which tool to call and produces raw structured data.
+    We then send that raw data through a second Gemini pass with a strict
+    presentation prompt so the end user only ever sees clean, summarised prose.
+    """
     inputs = {"input": user_input, "chat_history": messages}
     result = agent.invoke(inputs)
     tool_output = result["output"]
 
-    # Convert the tool output to a string to handle any data type (list, dict, str, etc.)
+    # Stringify so any return type (list, dict, str) can be summarised.
     data_to_format = str(tool_output)
 
-    # --- NEW, MORE ROBUST PROMPT ---
     prompt = f"""
 ## ROLE AND GOAL
 You are 'Balaji AI', an expert business analyst and assistant for Balaji Health Care, a medical equipment business. Your primary goal is to convert raw, structured data from internal software tools into clear, professional, and actionable insights for the user. You must be concise, accurate, and helpful.
@@ -111,77 +103,5 @@ Analyze the raw data below. Synthesize the key information and present it as a h
 ---
 """
 
-    # Get the final, summarized response from the LLM.
     final_response = llm.invoke(prompt)
-    
     return final_response.content if hasattr(final_response, "content") else final_response
-
-# from langchain_google_genai import ChatGoogleGenerativeAI
-# from langchain.agents import initialize_agent
-# from langchain.agents.agent_types import AgentType
-# from langchain.memory import ConversationBufferMemory
-# from firebase_config.tools import all_tools
-# import os
-# from firebase_config.llama_index_configs import global_settings  # triggers embedding config
-
-# # 🔐 Load Gemini API key
-# GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-
-# # 🤖 Initialize Gemini LLM with business prompt
-# llm = ChatGoogleGenerativeAI(
-#     model="gemini-2.0-flash",
-#     temperature=0,
-#     google_api_key=GOOGLE_API_KEY,
-#     system_instruction=(
-#         "You are a smart business assistant for Balaji Health Care.\n"
-#         "- ONLY respond to retrieval-based business queries related to orders, inventory, clients, expenses, suppliers, and invoices.\n"
-#         "- NEVER perform update, delete, or create actions.\n"
-#         "- ALWAYS summarize large lists: if there are too many entries, show only the top 10 and mention the total count.\n"
-#         "- When tool results or structured data is provided, explain them in human-readable summaries.\n"
-#         "- Handle identifier capitalization gracefully: 'c0003' and 'C0003' should be treated as equal.\n"
-#         "- Ignore unrelated, unsafe, or personal prompts.\n"
-#         "- Always speak in a clean, friendly, business tone."
-#     )
-# )
-
-# # 🧠 Enable conversational memory
-# memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
-
-# # 🛠️ Initialize LangChain Agent
-# agent = initialize_agent(
-#     tools=all_tools,
-#     llm=llm,
-#     agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-#     memory=memory,
-#     verbose=True,
-# )
-
-# # 🧠 Helper function to check for raw JSON or chunk dump
-# def looks_like_raw_data(text: str) -> bool:
-#     return isinstance(text, str) and (text.strip().startswith("{") or text.strip().startswith("["))
-
-# # ✅ Main agent call with post-processing
-# def run_agent(user_input: str, messages: list):
-#     inputs = {"input": user_input, "chat_history": messages}
-#     result = agent.invoke(inputs)
-#     raw_output = result["output"]
-
-#     # 🔁 If tool returned raw JSON, pass it again to Gemini for summarization
-#     if looks_like_raw_data(raw_output):
-#         followup_prompt = (
-#             "The following is a raw structured data response from a business tool:\n\n"
-#             f"{raw_output}\n\n"
-#             "Please summarize this in clear human-readable business format. "
-#             "Show only top 10 entries if too long, and mention total count."
-#         )
-#         final_summary = llm.invoke(followup_prompt)
-#         return final_summary.content.strip()
-
-#     return raw_output
-
-# # ✅ Streaming version (unchanged)
-# def run_agent_streaming(user_input: str, messages: list):
-#     inputs = {"input": user_input, "chat_history": messages}
-#     for chunk in agent.stream(inputs):
-#         if "output" in chunk:
-#             yield chunk["output"]

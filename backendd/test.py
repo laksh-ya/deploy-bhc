@@ -96,7 +96,10 @@ auth_logger = logging.getLogger("auth")
 
 class Settings:
     FIREBASE_CREDENTIALS_PATH = os.getenv("FIREBASE_CREDENTIALS_PATH", "/etc/secrets/firebase-credentials.json")
-    CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+    # Comma-separated list of allowed CORS origins. Defaults to "*" (any origin)
+    # to preserve the previous permissive behaviour; set CORS_ORIGINS in the
+    # environment (e.g. "https://bhcmp.store") to lock this down in production.
+    CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*").split(",")
     SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-change-this")
     ALGORITHM = os.getenv("ALGORITHM", "HS256")
     ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
@@ -166,16 +169,23 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Security middleware
+# CORS middleware
+#
+# The CORS spec forbids combining a wildcard origin ("*") with
+# allow_credentials=True. This app authenticates with the "X-User-ID" /
+# Authorization headers rather than cookies, so credentialed CORS is not
+# required. We therefore keep the permissive wildcard default (configurable via
+# the CORS_ORIGINS env var) and only enable credentials when an explicit origin
+# list is provided.
+_cors_origins = settings.CORS_ORIGINS
+_allow_credentials = "*" not in _cors_origins
 app.add_middleware(
       CORSMiddleware,
-      allow_origins=["*"],  # Adjust to your frontend URL
-      allow_credentials=True,
+      allow_origins=_cors_origins,
+      allow_credentials=_allow_credentials,
       allow_methods=["*"],
       allow_headers=["*"],
   )
-
-# CORS middleware
 
 
 # Request logging middleware
@@ -4748,8 +4758,12 @@ async def chat_endpoint(request: Request):
 
 
 
-# Initialize Gemini model
-gemini = ChatGoogleGenerativeAI(model="gemini-2.0-flash", google_api_key="AIzaSyDfTCLc5Xdi4xY625suBhdZ2gMom_ENDCQ")
+# Initialize Gemini model (API key is read from the GOOGLE_API_KEY environment
+# variable — never hard-code secrets in source).
+gemini = ChatGoogleGenerativeAI(
+    model="gemini-2.0-flash",
+    google_api_key=os.getenv("GOOGLE_API_KEY"),
+)
 
 # ----------- Helper Functions -----------
 
