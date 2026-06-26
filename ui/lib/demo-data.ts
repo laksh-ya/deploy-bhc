@@ -61,6 +61,14 @@ export const demoPayments = demoOrders
     created_at: o.created_at,
   }))
 
+export const demoExpenses = [
+  { id: "EXP-001", amount: 12000, category: "Salary", paid_by: "Suresh Patil", collected_by: null, remarks: "Field staff salary", type: "expense", created_at: "2026-05-11T10:00:00Z" },
+  { id: "EXP-002", amount: 4500, category: "Transport", paid_by: "Meena Joshi", collected_by: null, remarks: "Delivery fuel", type: "expense", created_at: "2026-05-09T10:00:00Z" },
+  { id: "EXP-003", amount: 8000, category: "Rent", paid_by: "Office", collected_by: null, remarks: "Warehouse rent", type: "expense", created_at: "2026-05-05T10:00:00Z" },
+  { id: "EXP-004", amount: 2500, category: "Utilities", paid_by: "Office", collected_by: null, remarks: "Electricity", type: "expense", created_at: "2026-05-03T10:00:00Z" },
+  { id: "EXP-005", amount: 6000, category: "Maintenance", paid_by: "Arjun Nair", collected_by: null, remarks: "Equipment servicing", type: "expense", created_at: "2026-04-28T10:00:00Z" },
+]
+
 export const demoMonths = months
 
 /** Per-month dashboard counters used by the charts + stat cards. */

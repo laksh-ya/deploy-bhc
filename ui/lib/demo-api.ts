@@ -16,6 +16,7 @@ import {
   demoEmployees,
   demoOrders,
   demoPayments,
+  demoExpenses,
   demoMonths,
   demoMonthlyStats,
   demoLogs,
@@ -48,13 +49,24 @@ function paginate<T>(items: T[], page = 1, limit = 10) {
 }
 
 /** Resolve a single mock response for a given API path + query. */
-function resolve(path: string, search: URLSearchParams): Response | null {
+function resolve(path: string, search: URLSearchParams, method = "GET"): Response | null {
   const page = Number(search.get("page") || "1")
   const limit = Number(search.get("limit") || "10")
 
-  // --- Auth ---
+  // --- Auth --- (handled before the write short-circuit so login still returns
+  // a user object, not a generic write acknowledgement).
   if (path === "/api/v1/auth/login") {
     return json({ name: "Demo Admin", email: "demo@bhc.com", role: "admin" })
+  }
+
+  // Writes (POST/PUT/PATCH/DELETE): acknowledge so the UI shows success without
+  // persisting anything. Done before GET list handlers so create endpoints don't
+  // match a GET list handler that shares the same path (e.g. POST /api/v1/expenses).
+  if (!["GET", "HEAD"].includes(method.toUpperCase())) {
+    if (path.startsWith("/api/v1/") || path === "/upload") {
+      return json({ message: "Demo mode: changes are not persisted.", demo: true, id: `DEMO-${Date.now()}` })
+    }
+    return null
   }
 
   // --- Clients ---
@@ -166,9 +178,15 @@ function resolve(path: string, search: URLSearchParams): Response | null {
   }
 
   // --- Payments / Finance ---
+  if (path === "/api/v1/expenses") {
+    const { slice, pagination } = paginate(demoExpenses, page, limit)
+    // finance-tab reads data.items, data.total_pages, data.total_count
+    return json({ items: slice, total_pages: pagination.total_pages, total_count: pagination.total_items, pagination })
+  }
   if (path === "/api/v1/payments") {
     const { slice, pagination } = paginate(demoPayments, page, limit)
-    return json({ payments: slice, pagination })
+    // finance-tab reads data.payments and data.total_count
+    return json({ payments: slice, total_count: pagination.total_items, pagination })
   }
 
   // --- Dashboard ---
@@ -212,9 +230,19 @@ function resolve(path: string, search: URLSearchParams): Response | null {
     return json({ batches: (found?.batches || []).map((b) => b.batch_number) })
   }
 
-  // Writes (POST/PUT/DELETE) — acknowledge so the UI shows success in the demo.
-  if (path.startsWith("/api/v1/") || path === "/upload") {
-    return json({ message: "Demo mode: changes are not persisted.", demo: true })
+  // Dropdown batches handled above.
+
+  // Safe fallback for any unhandled GET so the demo never hits a dead backend.
+  if (path.startsWith("/api/v1/")) {
+    return json({
+      items: [],
+      orders: [],
+      payments: [],
+      logs: [],
+      total_pages: 1,
+      total_count: 0,
+      pagination: { current_page: 1, total_pages: 1, total_items: 0, items_per_page: 10, has_next: false, has_prev: false },
+    })
   }
 
   return null
@@ -232,10 +260,16 @@ export function installDemoApi() {
       const rawUrl = typeof input === "string" ? input : input instanceof URL ? input.href : (input as Request).url
       const url = new URL(rawUrl, window.location.origin)
 
+      // Resolve the HTTP method (from init, or the Request object).
+      const method =
+        (init?.method ||
+          (typeof input !== "string" && !(input instanceof URL) ? (input as Request).method : undefined) ||
+          "GET").toUpperCase()
+
       // Never intercept the Next.js AI chat route — it streams from its own handler.
       const isApi = url.pathname.startsWith("/api/v1/") || url.pathname === "/upload"
       if (isApi) {
-        const res = resolve(url.pathname, url.searchParams)
+        const res = resolve(url.pathname, url.searchParams, method)
         if (res) {
           // Small delay so loading states are visible in the demo.
           await new Promise((r) => setTimeout(r, 120))

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Bot, User, Send, Sparkles, Loader2, Mic, MicOff, AlertCircle, RefreshCw, Heart } from "lucide-react";
+import { Bot, User, Send, Sparkles, Loader2, Mic, MicOff, AlertCircle, RefreshCw, Heart, Headphones, Volume2 } from "lucide-react";
 import { useNotifications } from "@/components/notifications-provider";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -47,6 +47,7 @@ interface SpeechRecognition extends EventTarget {
 interface Window {
   SpeechRecognition?: new () => SpeechRecognition;
   webkitSpeechRecognition?: new () => SpeechRecognition;
+  speechSynthesis: SpeechSynthesis;
 }
 
 
@@ -65,6 +66,10 @@ export function ChatbotTab() {
   const [error, setError] = useState<Error | null>(null);
   const [isListening, setIsListening] = useState(false);
   const [speechSupported, setSpeechSupported] = useState(false);
+  const [voiceMode, setVoiceMode] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [ttsSupported, setTtsSupported] = useState(false);
+  const voiceModeRef = useRef(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const { addNotification } = useNotifications();
   const messagesEndRef = useRef<HTMLDivElement>(null); // Ref for auto-scrolling
@@ -84,12 +89,19 @@ export function ChatbotTab() {
     if (typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition)) {
       setSpeechSupported(true);
     }
+    // Check for text-to-speech support (for hands-free voice mode)
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      setTtsSupported(true);
+    }
 
-    // Cleanup speech recognition on unmount
+    // Cleanup speech recognition + synthesis on unmount
     return () => {
       if (recognitionRef.current) {
         recognitionRef.current.stop();
         recognitionRef.current = null;
+      }
+      if (typeof window !== 'undefined' && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
       }
     };
   }, []);
@@ -108,6 +120,54 @@ export function ChatbotTab() {
       stopListening();
     } else {
       startListening();
+    }
+  };
+
+  // Read an answer aloud (only in hands-free voice mode), then resume listening
+  // for a natural back-and-forth conversation.
+  const speak = (text: string) => {
+    if (typeof window === "undefined" || !window.speechSynthesis) return;
+    if (!voiceModeRef.current) return;
+    try {
+      window.speechSynthesis.cancel();
+      const clean = text
+        .replace(/```[\s\S]*?```/g, " ")
+        .replace(/[#*_`>|]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+      if (!clean) return;
+      const utter = new SpeechSynthesisUtterance(clean);
+      utter.rate = 1.03;
+      utter.onstart = () => setIsSpeaking(true);
+      utter.onend = () => {
+        setIsSpeaking(false);
+        if (voiceModeRef.current) {
+          setTimeout(() => startListening(), 400);
+        }
+      };
+      window.speechSynthesis.speak(utter);
+    } catch {
+      /* ignore TTS errors */
+    }
+  };
+
+  const toggleVoiceMode = () => {
+    const next = !voiceMode;
+    setVoiceMode(next);
+    voiceModeRef.current = next;
+    if (next) {
+      addNotification({
+        title: "Voice mode enabled",
+        message: "Hands-free: ask out loud and I'll reply by voice. Tap again to exit.",
+        type: "info",
+      });
+      startListening();
+    } else {
+      stopListening();
+      if (typeof window !== "undefined" && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+      setIsSpeaking(false);
     }
   };
 
@@ -132,22 +192,16 @@ export function ChatbotTab() {
     setError(null);
     // --- FIX ENDS HERE ---
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-    const url = `${apiUrl}/api/v1/chat`;
-
+    // Same-origin Next.js AI route — streams plain text. Works on Vercel with
+    // no separate backend (model is env-configurable: Google or Groq).
     try {
-      const response = await fetch(url, {
+      const response = await fetch(`/api/chat`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "text/event-stream",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          prompt: query,
-          // Use the up-to-date `historyForApi` variable here.
-          chat_history: historyForApi
-            .filter(msg => msg.id !== "1") // Filter out welcome message
-            .map(msg => ({ type: msg.role, content: msg.content })),
+          messages: historyForApi
+            .filter((msg) => msg.id !== "1") // drop the welcome message
+            .map((msg) => ({ role: msg.role, content: msg.content })),
         }),
       });
 
@@ -168,20 +222,17 @@ export function ChatbotTab() {
         const { done, value } = await reader.read();
         if (done) break;
 
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split('\n');
-        for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            const data = line.substring(6);
-            if (data === '[DONE]') break;
-            assistantResponseAccumulated += data;
-            setMessages((prevMessages) =>
-              prevMessages.map(msg =>
-                msg.id === assistantMessageId ? { ...msg, content: assistantResponseAccumulated } : msg
-              )
-            );
-          }
-        }
+        assistantResponseAccumulated += decoder.decode(value, { stream: true });
+        setMessages((prevMessages) =>
+          prevMessages.map((msg) =>
+            msg.id === assistantMessageId ? { ...msg, content: assistantResponseAccumulated } : msg
+          )
+        );
+      }
+
+      // In hands-free mode, read the answer aloud and then listen again.
+      if (assistantResponseAccumulated.trim()) {
+        speak(assistantResponseAccumulated);
       }
     } catch (err: unknown) {
       console.error('Error sending message or receiving stream:', err);
@@ -244,11 +295,13 @@ export function ChatbotTab() {
     recognitionRef.current.start();
     setIsListening(true);
 
-    addNotification({
-      title: "Voice Input Active",
-      message: "Speak clearly into your microphone. Click the mic button again to stop.",
-      type: "info",
-    });
+    if (!voiceModeRef.current) {
+      addNotification({
+        title: "Voice Input Active",
+        message: "Speak clearly into your microphone. Click the mic button again to stop.",
+        type: "info",
+      });
+    }
   };
 
   const stopListening = () => {
@@ -391,6 +444,12 @@ export function ChatbotTab() {
               </ScrollArea>
 
               <div className="border-t border-white/20 dark:border-gray-700/30 p-4">
+                {voiceMode && (
+                  <div className="mb-2 flex items-center justify-center gap-2 text-xs text-readable-muted">
+                    <span className={`inline-flex h-2 w-2 rounded-full ${isSpeaking ? "bg-blue-500 animate-pulse" : isListening ? "bg-green-500 animate-pulse" : "bg-gray-400"}`} />
+                    {isSpeaking ? "Speaking…" : isListening ? "Listening… speak now" : "Hands-free mode active"}
+                  </div>
+                )}
                 <form onSubmit={handleSubmit} className="flex space-x-2">
                   <Input
                     name="prompt"
@@ -401,6 +460,20 @@ export function ChatbotTab() {
                     disabled={isLoading || !!error}
                     aria-label="Chat input"
                   />
+                  {ttsSupported && speechSupported && (
+                    <Button
+                      type="button"
+                      variant={voiceMode ? "default" : "outline"}
+                      size="icon"
+                      onClick={toggleVoiceMode}
+                      disabled={isLoading || !!error}
+                      className={`glass-button ${voiceMode ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0" : ""}`}
+                      aria-label={voiceMode ? "Exit hands-free voice mode" : "Enter hands-free voice mode"}
+                      title="Hands-free voice mode"
+                    >
+                      {voiceMode ? <Volume2 className="w-4 h-4" /> : <Headphones className="w-4 h-4" />}
+                    </Button>
+                  )}
                   {speechSupported && (
                     <Button
                       type="button"

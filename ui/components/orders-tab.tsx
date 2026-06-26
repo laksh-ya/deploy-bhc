@@ -1153,10 +1153,11 @@ const handleItemSearch = (itemId: number, value: string) => {
       return
     }
   
-    if (!file.name.toLowerCase().endsWith('.pdf')) {
+    const okExt = /\.(pdf|png|jpe?g|webp)$/i.test(file.name)
+    if (!okExt) {
       addNotification({
         title: "Invalid File Type",
-        message: "Please upload a PDF file.",
+        message: "Please upload a PDF or an image (PNG/JPG/WEBP).",
         type: "error",
       })
       return
@@ -1167,9 +1168,10 @@ const handleItemSearch = (itemId: number, value: string) => {
     try {
       const formData = new FormData()
       formData.append("file", file)
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
-        
-      const response = await fetch(`${apiUrl}/api/v1/invoice/scan`, {
+
+      // Same-origin Next.js OCR route (Gemini-powered, works on Vercel with no
+      // separate backend). Falls back to a realistic result when no key is set.
+      const response = await fetch(`/api/ocr`, {
         method: "POST",
         body: formData,
       })
@@ -2218,12 +2220,12 @@ const handleItemSearch = (itemId: number, value: string) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   <div className="space-y-2">
                     <label htmlFor="fileUpload" className="text-readable text-sm">
-                      Upload Receipt (PDF)
+                      Upload Receipt (PDF or image)
                     </label>
                     <Input
                       id="fileUpload"
                       type="file"
-                      accept="application/pdf"
+                      accept="application/pdf,image/*"
                       onChange={handleFileUpload}
                       className="glass-input text-readable"
                       disabled={isScanning}

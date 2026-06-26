@@ -1,10 +1,31 @@
-firebase_config/firebase_key.json
+# --- Secrets & credentials ---
 .env
-venv
+.env.*
+!.env.example
+firebase_config/firebase_key.json
+backendd/firebase_config/firebase_key.json
 Test/firebase_key.json
-<<<<<<< Updated upstream
-/venv
-
-=======
 Test/backend/firebase_key.json
->>>>>>> Stashed changes
+*firebase-credentials*.json
+
+# --- Python ---
+venv/
+/venv
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# --- Logs ---
+backendd/logs/*.log
+*.log
+
+# --- OS / editor junk ---
+.DS_Store
+*.lnk
+Thumbs.db
+
+# --- Node / Next.js (frontend) ---
+node_modules/
+ui/.next/
+ui/out/
+ui/.vercel/

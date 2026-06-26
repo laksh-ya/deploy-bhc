@@ -50,7 +50,9 @@ deploy-bhc/
 | `app/page.tsx` | Root client component. Holds auth state + tab switching. Installs the demo API interceptor when demo mode is on. |
 | `app/layout.tsx` | HTML shell + theme provider. |
 | `app/globals.css` | Theme tokens, glassmorphism utilities, blue/cyan brand gradients. |
-| `app/api/chat/route.ts` | Next.js route for the client-side AI chat (Gemini via Vercel AI SDK). |
+| `app/api/chat/route.ts` | Server route for the AI chat. Streams plain text from Google **or** Groq (env-selectable model) and falls back to a local, data-grounded answer when no key is set. |
+| `app/api/ocr/route.ts` | Server route for invoice/receipt OCR. Sends an uploaded PDF/image to Gemini and returns a structured order; returns a realistic mock when no key is set. |
+| `lib/ai-context.ts` | Builds the assistant's system prompt + the no-key local fallback, grounded in the demo dataset. |
 | `components/*-tab.tsx` | One component per domain (dashboard, inventory, orders, clients, suppliers, employees, finance, invoices/view-orders, chatbot, logs). |
 | `components/login-page.tsx` | Login screen with **real backend login + one-click demo**. |
 | `components/sidebar.tsx` | Navigation, theme toggle, notifications, user profile. |
@@ -85,8 +87,20 @@ This is what lets you open the app on any machine (or a recruiter's) and have
 1. `app/page.tsx` calls `installDemoApi()` at module load.
 2. That patches `window.fetch`: any request to `/api/v1/...` or `/upload` is
    answered from `lib/demo-data.ts` instead of the network.
-3. The login screen shows a **"Try the Live Demo"** button and demo credentials
-   (`demo@bhc.com` / `demo123`).
+3. The login screen offers a one-click **"Quick Sign In"**.
+4. The **AI assistant** (`/api/chat`) and **invoice OCR** (`/api/ocr`) run as
+   same-origin Next.js routes, so they work on Vercel with no Python backend.
+   With a Google/Groq key set they use the real model; with no key they return a
+   believable, data-grounded result so the showcase always works.
+
+**AI / OCR configuration (optional, server-side only):**
+Copy `ui/.env.example` → `ui/.env.local`. Key vars:
+- `AI_PROVIDER` — `google` (default) or `groq`
+- `GOOGLE_GENERATIVE_AI_API_KEY`, `GOOGLE_CHAT_MODEL` (e.g. `gemini-2.0-flash`)
+- `GROQ_API_KEY`, `GROQ_CHAT_MODEL` (e.g. `llama-3.3-70b-versatile`)
+- `GOOGLE_OCR_MODEL` (defaults to `GOOGLE_CHAT_MODEL`)
+These are **not** `NEXT_PUBLIC_*`, so keys stay on the server and are never
+shipped to the browser.
 
 **To demo locally:**
 ```bash

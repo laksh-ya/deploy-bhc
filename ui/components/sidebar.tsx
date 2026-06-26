@@ -18,11 +18,13 @@ import {
   Laptop,
   Menu,
   X,
+  BookOpen,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useTheme } from "next-themes"
 import { useNotifications } from "@/components/notifications-provider"
+import { DEMO_MODE } from "@/lib/demo-auth"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,8 +57,10 @@ const navigation = [
   { id: "employees", name: "Employees", icon: Users },
   { id: "invoices", name: "View Orders", icon: FileText },
   { id: "finance", name: "Finance", icon: DollarSign },
-  { id: "chatbot", name: "AI Assistant", icon: Bot },  
+  { id: "chatbot", name: "AI Assistant", icon: Bot },
   { id: "logs", name: "Logs", icon: FileText },
+  // Shown only in the showcase build.
+  ...(DEMO_MODE ? [{ id: "about", name: "Architecture & Docs", icon: BookOpen }] : []),
 ]
 
 export function Sidebar({ activeTab, setActiveTab, user, onLogout }: SidebarProps) {

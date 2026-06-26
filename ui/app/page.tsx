@@ -15,6 +15,7 @@ import { NotificationsProvider } from "@/components/notifications-provider"
 import { useMobile } from "@/hooks/use-mobile"
 import { EmployeesTab } from "@/components/employees-tab"
 import { Logs } from "@/components/logs"
+import { AboutTab } from "@/components/about-tab"
 import { DEMO_MODE } from "@/lib/demo-auth"
 import { installDemoApi } from "@/lib/demo-api"
 
@@ -83,6 +84,8 @@ export default function Home() {
         return <EmployeesTab  />
       case "logs":
         return <Logs />
+      case "about":
+        return <AboutTab />
       default:
         return <DashboardTab onNavigateToTab={handleNavigateToTab} />
     }

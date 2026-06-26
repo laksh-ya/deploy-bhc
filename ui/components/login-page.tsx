@@ -6,9 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Building2, Lock, User, Sparkles } from "lucide-react"
+import { Building2, Lock, User, Sparkles, Loader2 } from "lucide-react"
 import { API_BASE_URL } from "@/lib/config"
-import { DEMO_MODE, DEMO_CREDENTIALS, PRIMARY_DEMO_USER, demoLogin } from "@/lib/demo-auth"
+import { DEMO_MODE, PRIMARY_DEMO_USER, demoLogin } from "@/lib/demo-auth"
 
 interface LoginPageProps {
   onLogin: (userData: { email: string; role: string; name: string }) => void
@@ -17,6 +17,7 @@ interface LoginPageProps {
 export function LoginPage({ onLogin }: LoginPageProps) {
   const [formData, setFormData] = useState({ email: "", password: "" })
   const [loading, setLoading] = useState(false)
+  const [demoLoading, setDemoLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -55,7 +56,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
     } catch (err: any) {
       setError(
         DEMO_MODE
-          ? "Login failed. Try the demo account below."
+          ? "Those credentials didn't match. Use the quick sign-in below."
           : err.message || "Login failed",
       )
     } finally {
@@ -65,7 +66,9 @@ export function LoginPage({ onLogin }: LoginPageProps) {
 
   const handleDemoLogin = () => {
     setError(null)
-    onLogin(PRIMARY_DEMO_USER)
+    setDemoLoading(true)
+    // Brief, intentional pause so entering the workspace feels deliberate.
+    setTimeout(() => onLogin(PRIMARY_DEMO_USER), 450)
   }
 
   const handleInputChange = (field: string, value: string) => {
@@ -135,42 +138,41 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             <Button
               type="submit"
               className="w-full mt-2 btn-blue text-white shadow-lg shadow-blue-500/20 hover:shadow-xl transition-all duration-200"
-              disabled={loading}
+              disabled={loading || demoLoading}
             >
               {loading ? "Signing In..." : "Sign In to Business Suite"}
             </Button>
           </form>
 
           {DEMO_MODE && (
-            <>
-              <div className="relative my-5">
+            <div className="mt-5 text-center">
+              <div className="relative mb-4">
                 <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-blue-200/50 dark:border-blue-800/50" />
+                  <span className="w-full border-t border-blue-200/40 dark:border-blue-800/40" />
                 </div>
                 <div className="relative flex justify-center text-xs">
                   <span className="bg-transparent px-2 text-readable-subtle">or</span>
                 </div>
               </div>
-
-              <Button
+              <button
                 type="button"
                 onClick={handleDemoLogin}
-                variant="outline"
-                className="w-full glass-button text-readable hover:text-blue-600 dark:hover:text-blue-400"
+                disabled={demoLoading}
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:underline underline-offset-4 transition-colors disabled:opacity-60"
               >
-                <Sparkles className="w-4 h-4 mr-2 text-blue-500" />
-                Try the Live Demo
-              </Button>
-
-              <div className="mt-4 p-3 sm:p-4 glass rounded-lg border border-blue-200/30 dark:border-blue-700/30">
-                <p className="text-xs text-readable-muted text-center mb-1">
-                  <strong className="text-blue-600 dark:text-blue-400">Demo credentials</strong>
-                </p>
-                <p className="text-xs text-readable-subtle text-center font-mono">
-                  {DEMO_CREDENTIALS[0].email} &nbsp;/&nbsp; {DEMO_CREDENTIALS[0].password}
-                </p>
-              </div>
-            </>
+                {demoLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Opening workspace…
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4" />
+                    Explore with sample data
+                  </>
+                )}
+              </button>
+            </div>
           )}
 
           <p className="text-xs text-readable-subtle text-center mt-4">

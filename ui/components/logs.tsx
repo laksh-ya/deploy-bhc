@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Loader2, AlertCircle, FileText } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
+import { apiUrl } from "@/lib/config"
 
 interface LogEntry {
   message: string
@@ -19,7 +20,7 @@ export function Logs() {
   useEffect(() => {
     const fetchLogs = async () => {
       try {
-        const response = await fetch("http://localhost:8000/api/v1/logs")
+        const response = await fetch(apiUrl("/api/v1/logs"))
         if (!response.ok) throw new Error("Failed to fetch logs")
         const data = await response.json()
         setLogs((data.logs || []).reverse())
